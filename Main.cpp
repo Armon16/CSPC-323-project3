@@ -1,3 +1,7 @@
+// Assignment 3: Symbol Table & Assembly Code
+// CPSC 323-02, CSUF Fall 2020
+// Gage Dimapindan, Richard Gobea, Armon Rahimi
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -12,7 +16,6 @@ const std::vector<std::string> ops = { "=", "!", "<", ">", "-", "+", "*", "/" , 
 
 bool file = false;
 int line = 1;
-std::vector<Character> table;
 int Mem_address = 5000;
 
 class Reader {
@@ -44,6 +47,8 @@ public:
 		setAddress(address);
 	}
 };
+
+std::vector<Character> table;
 
 class instr {
 private:
@@ -135,12 +140,15 @@ void make_Sym(Reader sym) {
 }
 
 void print_Symbols(std::ofstream& out) {
-	out << "Identifier\t" << "MemoryLocation\tType\n";
+	out << "Symbol Table:\n\n";
+	out << "Identifier\t" << "MemoryLocation\t\t\tType\n";
 	std::vector<Character>::iterator i = table.begin();
 	while (i != table.end()) {
-		out << i->getSym().getLexeme() << "\t\t" << i->getAddress() << "\t\t" << i->getSym().getToken() << "\n";
+		out << "\t" << i->getSym().getLexeme() << "\t\t\t\t\t\t" << i->getAddress() << "\t\t\t\t\t" << i->getSym().getToken() << "\n";
 		i++;
 	}
+	out << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n";
+	out << "Assembly Code:\n";
 }
 
 
@@ -163,6 +171,11 @@ void print_instr(std::ofstream& out) {
 
 std::vector<Reader> arithmetic_Table;
 
+void arithmetic_Error() {
+	std::cerr << "Error: illegal arithmetic op on line: " << line << ".\n";
+	exit(2);
+}
+
 void arithmetic_Check() {
 	if (arithmetic_Table.empty()) { arithmetic_Error(); }
 	std::string save = arithmetic_Table.back().getLexeme();
@@ -179,10 +192,6 @@ void arithmetic_Check() {
 	}
 }
 
-void arithmetic_Error() {
-	std::cerr << "Error: Illegal arithmetic operation in line " << line << ".\n";
-	exit(2);
-}
 
 std::vector<int> jumpStackPosition;
 
@@ -290,6 +299,12 @@ Reader Lexer_call(std::ofstream& out, std::ifstream& source) {
 
 }
 
+void Syntax_Error(Reader latest, std::ofstream& out, std::string expected) {
+	std::cerr << "Syntax Error: Expected " << expected << " on line " << line << "\n";
+	std::cerr << "Received " << latest.getToken() << " \"" << latest.getLexeme() << "\"\n";
+	exit(1);
+}
+
 void Lexeme_Check(std::ofstream& out, std::ifstream& source, std::string lexeme) {
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() != lexeme) {
@@ -297,11 +312,6 @@ void Lexeme_Check(std::ofstream& out, std::ifstream& source, std::string lexeme)
 	}
 }
 
-void Syntax_Error(Reader latest, std::ofstream& out, std::string expected) {
-	std::cerr << "Syntax Error: Expected " << expected << " on line " << line << "\n";
-	std::cerr << "Received " << latest.getToken() << " \"" << latest.getLexeme() << "\"\n";
-	exit(1);
-}
 
 void Rat20F(std::ofstream& out, std::ifstream& source);
 Reader OFD(std::ofstream& out, std::ifstream& source);
@@ -322,43 +332,23 @@ void Return(std::ofstream& out, std::ifstream& source);
 void If_Prime(std::ofstream& out, std::ifstream& source, Reader latest);
 void Return_Prime(std::ofstream& out, std::ifstream& source);
 
-int main(int argc, const char* argv[]) {
-	char c;
-	if (argv[1] == nullptr) {
-		std::cerr << "No Input File Detected\n";
-		std::cin >> c;
-		return 2;
-	}
-	if (argv[2] == nullptr) {
-		std::cerr << "No Output File Detected\n";
-		std::cin >> c;
-		return 2;
-	}
-	std::ifstream source(argv[1]);
-	std::ofstream out(argv[2]);
-	if (!out.is_open()) {
-		std::cout << "Output file failed to open\n";
-		std::cin >> c;
-		return 2;
-	}
-
-	if (!source.is_open()) {
-		std::cout << "Input file failed to open\n";
-		std::cin >> c;
-		return 2;
-	}
-
-	Rat20F(out, source);
-
-	print_Symbols(out);
-	print_instr(out);
-
-	out.close();
-	source.close();
-	return 0;
+void Empty(std::ofstream& out, std::ifstream& source) {
 }
 
-void Empty(std::ofstream& out, std::ifstream& source) {
+Reader Primary_prime(std::ofstream& out, std::ifstream& source) {
+	if (file)
+		out << "\t<Primary>' ::= ( <IDs> ) | <Empty>\n";
+	Reader latest = Lexer_call(out, source);
+	if (latest.getLexeme() != "(") {
+		return latest;
+	}
+	else
+		latest = IDs(out, source, Lexer_call(out, source), false, "");
+	if (latest.getLexeme() != ")") {
+		Syntax_Error(latest, out, ")");
+	}
+	else
+		return Lexer_call(out, source);
 }
 
 Reader Primary(std::ofstream& out, std::ifstream& source, Reader latest) {
@@ -400,23 +390,6 @@ Reader Primary(std::ofstream& out, std::ifstream& source, Reader latest) {
 		Syntax_Error(latest, out, "identifier or int or ( or real or true or false");
 }
 
-Reader Primary_prime(std::ofstream& out, std::ifstream& source) {
-	if (file)
-		out << "\t<Primary>' ::= ( <IDs> ) | <Empty>\n";
-	Reader latest = Lexer_call(out, source);
-	if (latest.getLexeme() != "(") {
-		return latest;
-	}
-	else
-		latest = IDs(out, source, Lexer_call(out, source), false, "");
-	if (latest.getLexeme() != ")") {
-		Syntax_Error(latest, out, ")");
-	}
-	else
-		return Lexer_call(out, source);
-}
-
-
 Reader Factor(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (file)
 		out << "\t<Factor> ::= - <Primary> | <Primary>\n";
@@ -425,13 +398,6 @@ Reader Factor(std::ofstream& out, std::ifstream& source, Reader latest) {
 		return Primary(out, source, Lexer_call(out, source));
 	else
 		return Primary(out, source, latest);
-}
-
-Reader Term(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (file)
-		out << "\t<Term> ::= <Factor> <Term>'\n";
-	latest = Factor(out, source, latest);
-	return Term_Prime(out, source, latest);
 }
 
 Reader Term_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
@@ -450,12 +416,11 @@ Reader Term_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
 	else
 		return latest;
 }
-
-Reader Expression(std::ofstream& out, std::ifstream& source, Reader latest) {
+Reader Term(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (file)
-		out << "\t<Expression> ::= <Term> <Expression>'\n";
-	latest = Term(out, source, latest);
-	return Expression_Prime(out, source, latest);
+		out << "\t<Term> ::= <Factor> <Term>'\n";
+	latest = Factor(out, source, latest);
+	return Term_Prime(out, source, latest);
 }
 
 Reader Expression_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
@@ -471,6 +436,13 @@ Reader Expression_Prime(std::ofstream& out, std::ifstream& source, Reader latest
 	}
 	else
 		return latest;
+}
+
+Reader Expression(std::ofstream& out, std::ifstream& source, Reader latest) {
+	if (file)
+		out << "\t<Expression> ::= <Term> <Expression>'\n";
+	latest = Term(out, source, latest);
+	return Expression_Prime(out, source, latest);
 }
 
 void Relop(std::ofstream& out, std::ifstream& source, Reader latest) {
@@ -489,7 +461,7 @@ Reader Condition(std::ofstream& out, std::ifstream& source) {
 	Reader save = Expression(out, source, Lexer_call(out, source));
 	if (latest.getLexeme() == "<") {
 		general_instr("LES", "null");
-		push_jumpStack(instr_address - 1); 
+		push_jumpStack(instr_address - 1);
 		general_instr("JUMPZ", "null");
 	}
 
@@ -664,13 +636,6 @@ Reader Decla(std::ofstream& out, std::ifstream& source, Reader a) {
 	return IDs(out, source, latest, true, a.getLexeme());
 }
 
-Reader Parameter_List(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (file)
-		out << "\t<Parameter List> ::= <Parameter> <Parameter List>'\n";
-	Parameter(out, source, latest);
-	return Parameter_List_Cont(out, source);
-}
-
 Reader Parameter_List_Cont(std::ofstream& out, std::ifstream& source) {
 	if (file)
 		out << "\t<Parameter List>\' ::= ,  <Parameter List>  |  <Empty>\n";
@@ -679,6 +644,13 @@ Reader Parameter_List_Cont(std::ofstream& out, std::ifstream& source) {
 		return Parameter_List(out, source, Lexer_call(out, source));
 	else
 		return latest;
+}
+
+Reader Parameter_List(std::ofstream& out, std::ifstream& source, Reader latest) {
+	if (file)
+		out << "\t<Parameter List> ::= <Parameter> <Parameter List>'\n";
+	Parameter(out, source, latest);
+	return Parameter_List_Cont(out, source);
 }
 
 Reader Declare_List_Cont(std::ofstream& out, std::ifstream& source, Reader latest) {
@@ -913,10 +885,46 @@ void Rat20F(std::ofstream& out, std::ifstream& source) {
 
 	Lexeme_Check(out, source, "$$");
 
-	Reader latest = ODL(out, source); 
+	Reader latest = ODL(out, source);
 
 	latest = State_List(out, source, latest);
 	if (latest.getLexeme() != "$$")
 		Syntax_Error(latest, out, "$$");
 
+}
+
+int main(int argc, const char* argv[]) {
+	char c;
+	if (argv[1] == nullptr) {
+		std::cerr << "No Input File Detected\n";
+		std::cin >> c;
+		return 2;
+	}
+	if (argv[2] == nullptr) {
+		std::cerr << "No Output File Detected\n";
+		std::cin >> c;
+		return 2;
+	}
+	std::ifstream source(argv[1]);
+	std::ofstream out(argv[2]);
+	if (!out.is_open()) {
+		std::cout << "Output file failed to open\n";
+		std::cin >> c;
+		return 2;
+	}
+
+	if (!source.is_open()) {
+		std::cout << "Input file failed to open\n";
+		std::cin >> c;
+		return 2;
+	}
+
+	Rat20F(out, source);
+
+	print_Symbols(out);
+	print_instr(out);
+
+	out.close();
+	source.close();
+	return 0;
 }
