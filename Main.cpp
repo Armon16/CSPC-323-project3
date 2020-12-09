@@ -280,7 +280,7 @@ Reader Lexer_call(std::ofstream& out, std::ifstream& source) {
 
 
 
-			if (latest.getToken() != "fileend" && display) out << std::left << std::setw(10) << "Token:" << latest.getToken() << "\t:\t" << std::setw(10) << "Lexeme:" << latest.getLexeme() << "\n";
+			if (latest.getToken() != "fileend" && file) out << std::left << std::setw(10) << "Token:" << latest.getToken() << "\t:\t" << std::setw(10) << "Lexeme:" << latest.getLexeme() << "\n";
 			return latest;
 		}
 		else if (!isspace(c) && state != "comments" && done != 1) { lexeme.push_back(c); }
@@ -362,7 +362,7 @@ void Empty(std::ofstream& out, std::ifstream& source) {
 }
 
 Reader Primary(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Primary> ::= <Identifier> <Primary>' | <Integer> | ( <Expression> ) | <Real> | true | false\n";
 
 	if (latest.getToken() == "identifier") {
@@ -401,7 +401,7 @@ Reader Primary(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 Reader Primary_prime(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Primary>' ::= ( <IDs> ) | <Empty>\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() != "(") {
@@ -418,7 +418,7 @@ Reader Primary_prime(std::ofstream& out, std::ifstream& source) {
 
 
 Reader Factor(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Factor> ::= - <Primary> | <Primary>\n";
 
 	if (latest.getLexeme() == "-")
@@ -428,14 +428,14 @@ Reader Factor(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 Reader Term(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Term> ::= <Factor> <Term>'\n";
 	latest = Factor(out, source, latest);
 	return Term_Prime(out, source, latest);
 }
 
 Reader Term_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Term>' ::= * <Factor> <Term>' | / <Factor> <Term>' | <Empty>\n";
 	Reader save = latest;
 	if (latest.getLexeme() == "*" || latest.getLexeme() == "/") {
@@ -452,14 +452,14 @@ Reader Term_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 Reader Expression(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Expression> ::= <Term> <Expression>'\n";
 	latest = Term(out, source, latest);
 	return Expression_Prime(out, source, latest);
 }
 
 Reader Expression_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Expression>' ::= + <Term> <Expression>' | - <Term> <Expression>' | <Empty>\n";
 	std::string save = latest.getLexeme();
 	if (latest.getLexeme() == "+" || latest.getLexeme() == "-") {
@@ -474,7 +474,7 @@ Reader Expression_Prime(std::ofstream& out, std::ifstream& source, Reader latest
 }
 
 void Relop(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Relop> ::= == | != | > | < | <= | =>\n";
 
 	if (latest.getLexeme() == "==" || latest.getLexeme() == "!=" || latest.getLexeme() == ">" || latest.getLexeme() == "<" || latest.getLexeme() == "<=" || latest.getLexeme() == "=>")
@@ -482,7 +482,7 @@ void Relop(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 Reader Condition(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Condition> ::= <Expression> <Relop> <Expression>\n";
 	Reader latest = Expression(out, source, Lexer_call(out, source));
 	Relop(out, source, latest);
@@ -527,7 +527,7 @@ Reader Condition(std::ofstream& out, std::ifstream& source) {
 }
 
 void While(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<While> ::= while ( <Condition> ) <Statement>\n";
 	std::string addr = std::to_string(instr_address);
 	general_instr("LABEL", "null");
@@ -543,12 +543,12 @@ void While(std::ofstream& out, std::ifstream& source) {
 }
 
 void Scan(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Scan> ::= get ( <IDs> );\n";
 
 	Lexeme_Check(out, source, "(");
 	Reader latest = Lexer_call(out, source);
-	if (display)
+	if (file)
 		out << "\t<IDs> ::= <Identifier> <IDs>'\n";
 	if (latest.getToken() != "identifier")
 		Syntax_Error(latest, out, "an identifier");
@@ -568,7 +568,7 @@ void Scan(std::ofstream& out, std::ifstream& source) {
 }
 
 void Print(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Print> ::= put ( <Expression> );\n";
 
 	Lexeme_Check(out, source, "(");
@@ -582,7 +582,7 @@ void Print(std::ofstream& out, std::ifstream& source) {
 }
 
 Reader IDs_Cont(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<IDs>' ::= ,  <IDs>  |  <Empty>'\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() == ",")
@@ -592,7 +592,7 @@ Reader IDs_Cont(std::ofstream& out, std::ifstream& source) {
 }
 
 Reader IDs_Cont(std::ofstream& out, std::ifstream& source, bool make, std::string a) {
-	if (display)
+	if (file)
 		out << "\t<IDs>' ::= ,  <IDs>  |  <Empty>'\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() == ",")
@@ -602,7 +602,7 @@ Reader IDs_Cont(std::ofstream& out, std::ifstream& source, bool make, std::strin
 }
 
 Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest, bool make, std::string a) {
-	if (display)
+	if (file)
 		out << "\t<IDs> ::= <Identifier> <IDs>'\n";
 	if (latest.getToken() != "identifier")
 		Syntax_Error(latest, out, "an identifier");
@@ -619,7 +619,7 @@ Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest, bool make, 
 	return IDs_Cont(out, source, make, a);
 }
 Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<IDs> ::= <Identifier> <IDs>'\n";
 	if (latest.getToken() != "identifier")
 		Syntax_Error(latest, out, "an identifier");
@@ -627,7 +627,7 @@ Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 void Body(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Body> ::= { < Statement List> }\n";
 	if (latest.getLexeme() != "{") {
 		Syntax_Error(latest, out, "{");
@@ -640,7 +640,7 @@ void Body(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 void Qualifier(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Qualifier> ::= int | boolean | real\n";
 	if (latest.getLexeme() == "int" || latest.getLexeme() == "boolean" || latest.getLexeme() == "real")
 		return;
@@ -649,14 +649,14 @@ void Qualifier(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 void Parameter(std::ofstream& out, std::ifstream& source, Reader a) {
-	if (display)
+	if (file)
 		out << "\t<Parameter> ::= <IDs> <Qualifier>\n";
 	Reader latest = IDs(out, source, a);
 	Qualifier(out, source, latest);
 }
 
 Reader Decla(std::ofstream& out, std::ifstream& source, Reader a) {
-	if (display)
+	if (file)
 		out << "\t<Parameter> ::= <Qualifier> <IDs>\n";
 	Qualifier(out, source, a);
 	Reader latest = Lexer_call(out, source);
@@ -665,14 +665,14 @@ Reader Decla(std::ofstream& out, std::ifstream& source, Reader a) {
 }
 
 Reader Parameter_List(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Parameter List> ::= <Parameter> <Parameter List>'\n";
 	Parameter(out, source, latest);
 	return Parameter_List_Cont(out, source);
 }
 
 Reader Parameter_List_Cont(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Parameter List>\' ::= ,  <Parameter List>  |  <Empty>\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() == ",")
@@ -682,7 +682,7 @@ Reader Parameter_List_Cont(std::ofstream& out, std::ifstream& source) {
 }
 
 Reader Declare_List_Cont(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Declaration List>\' ::= <Declaration List>  |  <Empty>\n";
 	if (latest.getLexeme() == "int" || latest.getLexeme() == "boolean" || latest.getLexeme() == "real")
 		return Declare_List(out, source, latest);
@@ -691,7 +691,7 @@ Reader Declare_List_Cont(std::ofstream& out, std::ifstream& source, Reader lates
 }
 
 Reader Declare_List(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Declaration List> ::= <Declaration> ; <Declaration List>\'\n";
 	Reader l = Decla(out, source, latest);
 	if (l.getLexeme() != ";")
@@ -700,7 +700,7 @@ Reader Declare_List(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 Reader State_List_Cont(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Statement List>\' ::= <Statement List>  |  <Empty>\n";
 	if (latest.getLexeme() == "{") {
 		return State_List(out, source, latest);
@@ -727,14 +727,14 @@ Reader State_List_Cont(std::ofstream& out, std::ifstream& source, Reader latest)
 }
 
 Reader State_List(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Statement List> ::= <Statement> <Statement List>\'\n";
 	Statement(out, source, latest);
 	return State_List_Cont(out, source, Lexer_call(out, source));
 }
 
 Reader OPL(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Opt Parameter List> ::= <Parameter List> | <Empty>\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getToken() != "identifier") {
@@ -745,7 +745,7 @@ Reader OPL(std::ofstream& out, std::ifstream& source) {
 }
 
 Reader ODL(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Opt Declaration List> ::= <Declaration List> | <Empty>\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() == "int" || latest.getLexeme() == "boolean" || latest.getLexeme() == "real") {
@@ -757,7 +757,7 @@ Reader ODL(std::ofstream& out, std::ifstream& source) {
 }
 
 void Func(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Function> ::= function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>\n";
 
 	Reader latest = Lexer_call(out, source);
@@ -776,7 +776,7 @@ void Func(std::ofstream& out, std::ifstream& source) {
 }
 
 Reader Func_Def_Cont(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Function Definitions>' ::= <Function Definitions> | <Empty>\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() != "function") {
@@ -787,14 +787,14 @@ Reader Func_Def_Cont(std::ofstream& out, std::ifstream& source) {
 }
 
 Reader Func_Def(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Function Definitions> ::= <Function> <Function Definitions>'\n";
 	Func(out, source);
 	return Func_Def_Cont(out, source);
 }
 Reader OFD(std::ofstream& out, std::ifstream& source) {
 
-	if (display)
+	if (file)
 		out << "\t<Opt Function Definitions> ::= <Function Definitions> | <Empty>\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() != "function") {
@@ -805,7 +805,7 @@ Reader OFD(std::ofstream& out, std::ifstream& source) {
 }
 
 void Statement(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Statement ::= <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>\n";
 
 	if (latest.getLexeme() == "{") {
@@ -835,7 +835,7 @@ void Statement(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 void Compound(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Compound> ::= { <Statement List> }\n";
 	Reader latest = State_List(out, source, Lexer_call(out, source));
 	if (latest.getLexeme() != "}")
@@ -843,7 +843,7 @@ void Compound(std::ofstream& out, std::ifstream& source) {
 }
 
 void Assign(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<Assign> :: <Identifier> = <Expression>; \n";
 
 	std::string save = latest.getLexeme();
@@ -857,7 +857,7 @@ void Assign(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 void If(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<If> ::= if ( <Condition> ) <Statement> <If>'\n";
 	Lexeme_Check(out, source, "(");
 	Reader latest = Condition(out, source);
@@ -873,7 +873,7 @@ void If(std::ofstream& out, std::ifstream& source) {
 }
 
 void If_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (display)
+	if (file)
 		out << "\t<If>' ::= fi | else <Statement> fi\n";
 
 	if (latest.getLexeme() == "fi")
@@ -886,14 +886,14 @@ void If_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 void Return(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Return> ::= return <Return>'\n";
 	Return_Prime(out, source);
 	return;
 }
 
 void Return_Prime(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Return>' ::= ; | <Expression>;\n";
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() == ";")
@@ -908,7 +908,7 @@ void Return_Prime(std::ofstream& out, std::ifstream& source) {
 }
 
 void Rat20F(std::ofstream& out, std::ifstream& source) {
-	if (display)
+	if (file)
 		out << "\t<Rat20F> ::= $$ <Opt Declaration List> <Statement List> $$\n";
 
 	Lexeme_Check(out, source, "$$");
