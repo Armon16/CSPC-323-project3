@@ -10,39 +10,24 @@
 #include "class.h"
 #include "lexer.h"
 
-void Rat20F(std::ofstream& out, std::ifstream& source);
-Reader OFD(std::ofstream& out, std::ifstream& source);
-Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest);
-Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest, bool make, std::string a);
-Reader IDs_Cont(std::ofstream& out, std::ifstream& source);
-Reader IDs_Cont(std::ofstream& out, std::ifstream& source, bool make, std::string a);
-void Compound(std::ofstream& out, std::ifstream& source);
-void Statement(std::ofstream& out, std::ifstream& source, Reader latest);
-Reader State_List(std::ofstream& out, std::ifstream& source, Reader latest);
-Reader Expression(std::ofstream& out, std::ifstream& source, Reader latest);
-Reader Parameter_List(std::ofstream& out, std::ifstream& source, Reader latest);
-Reader Declare_List(std::ofstream& out, std::ifstream& source, Reader latest);
-Reader Func_Def(std::ofstream& out, std::ifstream& source);
-void Assign(std::ofstream& out, std::ifstream& source, Reader latest);
-void If(std::ofstream& out, std::ifstream& source);
-void Return(std::ofstream& out, std::ifstream& source);
-void If_Prime(std::ofstream& out, std::ifstream& source, Reader latest);
-void Return_Prime(std::ofstream& out, std::ifstream& source);
-
 Reader Primary_prime(std::ofstream& out, std::ifstream& source) {
 	if (file){
 		out << "\t<Primary>' ::= ( <IDs> ) | <Empty>\n";
 	}
+
 	Reader latest = Lexer_call(out, source);
 	if (latest.getLexeme() != "(") {
 		return latest;
 	}
+
 	else{
 		latest = IDs(out, source, Lexer_call(out, source), false, "");
 	}
+
 	if (latest.getLexeme() != ")") {
 		Syntax_Error(latest, out, ")");
 	}
+
 	else{
 		return Lexer_call(out, source);
 	}
@@ -64,6 +49,7 @@ Reader Primary(std::ofstream& out, std::ifstream& source, Reader latest) {
 		if (latest.getLexeme() != ")") {
 			Syntax_Error(latest, out, ")");
 		}
+
 		else{
 			return Lexer_call(out, source);
 		}
@@ -83,11 +69,13 @@ Reader Primary(std::ofstream& out, std::ifstream& source, Reader latest) {
 		if (latest.getLexeme() == "true"){
 			general_instr("PUSHM", "1");
 		}
+
 		else{
 			general_instr("PUSHM", "0");
 		}
 		return Lexer_call(out, source);
 	}
+
 	else{
 		Syntax_Error(latest, out, "identifier or int or ( or real or true or false");
 	}
@@ -101,6 +89,7 @@ Reader Factor(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (latest.getLexeme() == "-"){
 		return Primary(out, source, Lexer_call(out, source));
 	}
+
 	else{
 		return Primary(out, source, latest);
 	}
@@ -117,15 +106,18 @@ Reader Term_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
 		if (save.getLexeme() == "*"){
 			general_instr("MUL", "null");
 		}
+
 		else if (save.getLexeme() == "/"){
 			general_instr("DIV", "null");
 		}
 		return Term_Prime(out, source, latest);
 	}
+
 	else{
 		return latest;
 	}
 }
+
 Reader Term(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (file){
 		out << "\t<Term> ::= <Factor> <Term>'\n";
@@ -145,9 +137,11 @@ Reader Expression_Prime(std::ofstream& out, std::ifstream& source, Reader latest
 		if (save == "+") {
 			general_instr("ADD", "null");
 		}
+
 		else if (save == "-"){
 			 general_instr("SUB", "null");
 		}
+
 		return Expression_Prime(out, source, latest);
 	}
 	else{
@@ -168,8 +162,9 @@ void Relop(std::ofstream& out, std::ifstream& source, Reader latest) {
 		out << "\t<Relop> ::= == | != | > | < | <= | =>\n";
 	}
 
-	if (latest.getLexeme() == "==" || latest.getLexeme() == "!=" || latest.getLexeme() == ">" || latest.getLexeme() == "<" || latest.getLexeme() == "<=" || latest.getLexeme() == "=>")
+	if (latest.getLexeme() == "==" || latest.getLexeme() == "!=" || latest.getLexeme() == ">" || latest.getLexeme() == "<" || latest.getLexeme() == "<=" || latest.getLexeme() == "=>"){
 		return;
+	}
 }
 
 Reader Condition(std::ofstream& out, std::ifstream& source) {
@@ -181,37 +176,37 @@ Reader Condition(std::ofstream& out, std::ifstream& source) {
 	Reader save = Expression(out, source, Lexer_call(out, source));
 	if (latest.getLexeme() == "<") {
 		general_instr("LES", "null");
-		push_jumpStack(instr_address - 1);
+		push_stack(instr_address - 1);
 		general_instr("JUMPZ", "null");
 	}
 
 	else if (latest.getLexeme() == "<=") {
 		general_instr("LES", "null");
-		push_jumpStack(instr_address - 1);
+		push_stack(instr_address - 1);
 		general_instr("JUMPZ", "null");
 	}
 
 	else if (latest.getLexeme() == ">") {
 		general_instr("GRT", "null");
-		push_jumpStack(instr_address - 1);
+		push_stack(instr_address - 1);
 		general_instr("JUMPZ", "null");
 	}
 
 	else if (latest.getLexeme() == ">=") {
 		general_instr("GRT", "null");
-		push_jumpStack(instr_address - 1);
+		push_stack(instr_address - 1);
 		general_instr("JUMPZ", "null");
 	}
 
 	else if (latest.getLexeme() == "==") {
 		general_instr("EQU", "null");
-		push_jumpStack(instr_address - 1);
+		push_stack(instr_address - 1);
 		general_instr("JUMPZ", "null");
 	}
 
 	else if (latest.getLexeme() == "!=") {
 		general_instr("NEQ", "null");
-		push_jumpStack(instr_address - 1);
+		push_stack(instr_address - 1);
 		general_instr("JUMPZ", "null");
 	}
 
@@ -245,9 +240,11 @@ void Scan(std::ofstream& out, std::ifstream& source) {
 	if (file){
 		out << "\t<IDs> ::= <Identifier> <IDs>'\n";
 	}
+
 	if (latest.getToken() != "identifier"){
 		Syntax_Error(latest, out, "an identifier");
 	}
+
 	while (latest.getToken() == "identifier" || latest.getLexeme() == ",") {
 		if (latest.getToken() == "identifier") {
 			general_instr("STDIN", "null");
@@ -286,6 +283,7 @@ Reader IDs_Cont(std::ofstream& out, std::ifstream& source) {
 	if (latest.getLexeme() == ","){
 		return IDs(out, source, Lexer_call(out, source));
 	}
+
 	else{
 		return latest;
 	}
@@ -299,6 +297,7 @@ Reader IDs_Cont(std::ofstream& out, std::ifstream& source, bool make, std::strin
 	if (latest.getLexeme() == ","){
 		return IDs(out, source, Lexer_call(out, source), make, a);
 	}
+
 	else{
 		return latest;
 	}
@@ -308,25 +307,30 @@ Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest, bool make, 
 	if (file){
 		out << "\t<IDs> ::= <Identifier> <IDs>'\n";
 	}
+
 	if (latest.getToken() != "identifier"){
 		Syntax_Error(latest, out, "an identifier");
 	}
+
 	else if (make) {
 		std::vector<std::string>::const_iterator word;
 		word = std::find(keywords.begin(), keywords.end(), a);
 		latest.setType(*word);
 		make_Sym(latest);
 	}
+
 	else {
 		arithmetic_Table.push_back(latest);
 		general_instr("PUSHM", get_address(latest.getLexeme()));
 	}
 	return IDs_Cont(out, source, make, a);
 }
+
 Reader IDs(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (file){
 		out << "\t<IDs> ::= <Identifier> <IDs>'\n";
 	}
+
 	if (latest.getToken() != "identifier"){
 		Syntax_Error(latest, out, "an identifier");
 	}
@@ -337,6 +341,7 @@ void Body(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (file){
 		out << "\t<Body> ::= { < Statement List> }\n";
 	}
+
 	if (latest.getLexeme() != "{") {
 		Syntax_Error(latest, out, "{");
 	}
@@ -351,9 +356,11 @@ void Qualifier(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (file){
 		out << "\t<Qualifier> ::= int | boolean | real\n";
 	}
+
 	if (latest.getLexeme() == "int" || latest.getLexeme() == "boolean" || latest.getLexeme() == "real"){
 		return;
 	}
+
 	else{
 		Syntax_Error(latest, out, "int, boolean, or real");
 	}
@@ -425,27 +432,35 @@ Reader State_List_Cont(std::ofstream& out, std::ifstream& source, Reader latest)
 	if (file){
 		out << "\t<Statement List>\' ::= <Statement List>  |  <Empty>\n";
 	}
+
 	if (latest.getLexeme() == "{") {
 		return State_List(out, source, latest);
 	}
+
 	else if (latest.getToken() == "identifier"){
 		return State_List(out, source, latest);
 	}
+
 	else if (latest.getLexeme() == "if") {
 		return State_List(out, source, latest);
 	}
+
 	else if (latest.getLexeme() == "return") {
 		return State_List(out, source, latest);
 	}
+
 	else if (latest.getLexeme() == "put") {
 		return State_List(out, source, latest);
 	}
+
 	else if (latest.getLexeme() == "get") {
 		return State_List(out, source, latest);
 	}
+
 	else if (latest.getLexeme() == "while") {
 		return State_List(out, source, latest);
 	}
+
 	else{
 		return latest;
 	}
@@ -479,6 +494,7 @@ Reader ODL(std::ofstream& out, std::ifstream& source) {
 	if (latest.getLexeme() == "int" || latest.getLexeme() == "boolean" || latest.getLexeme() == "real") {
 		return Declare_List(out, source, latest);
 	}
+
 	else{
 		return latest;
 	}
@@ -513,6 +529,7 @@ Reader Func_Def_Cont(std::ofstream& out, std::ifstream& source) {
 	if (latest.getLexeme() != "function") {
 		return latest;
 	}
+
 	else{
 		return Func_Def(out, source);
 	}
@@ -525,6 +542,7 @@ Reader Func_Def(std::ofstream& out, std::ifstream& source) {
 	Func(out, source);
 	return Func_Def_Cont(out, source);
 }
+
 Reader OFD(std::ofstream& out, std::ifstream& source) {
 
 	if (file){
@@ -534,6 +552,7 @@ Reader OFD(std::ofstream& out, std::ifstream& source) {
 	if (latest.getLexeme() != "function") {
 		return latest;
 	}
+
 	else{
 		return Func_Def(out, source);
 	}
@@ -547,25 +566,32 @@ void Statement(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (latest.getLexeme() == "{") {
 		Compound(out, source);
 	}
+
 	else if (latest.getToken() == "identifier"){
 		Assign(out, source, latest);
 	}
+
 	else if (latest.getLexeme() == "if") {
 		If(out, source);
 	}
+
 	else if (latest.getLexeme() == "return") {
 		Return(out, source);
 	}
+
 	else if (latest.getLexeme() == "put") {
 		Print(out, source);
 
 	}
+
 	else if (latest.getLexeme() == "get") {
 		Scan(out, source);
 	}
+
 	else if (latest.getLexeme() == "while") {
 		While(out, source);
 	}
+
 	else{
 		Syntax_Error(latest, out, "{ or identifier or if or return or put or get or while");
 	}
@@ -656,6 +682,8 @@ void Return_Prime(std::ofstream& out, std::ifstream& source) {
 	}
 
 }
+
+void Rat20F(std::ofstream& out, std::ifstream& source);
 
 void Rat20F(std::ofstream& out, std::ifstream& source) {
 	if (file){
