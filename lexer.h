@@ -186,7 +186,7 @@ bool FSM(std::string& state, char input, std::string& lexeme) {
 	}
 	else if (state == "operator" && std::find(operator_state.begin(), operator_state.end(), lexeme + c) == operator_state.end()) {
 		if (lexeme == "<" || lexeme == "=" || lexeme == "!" || lexeme == "<" || lexeme == ">" || lexeme == "-" || lexeme == "+" || lexeme == "*" || lexeme == "/") {
-		return true;
+			return true;
 		}
 	}
 	else if (state == "separator" && std::find(separator_state.begin(), separator_state.end(), lexeme + c) == separator_state.end()) {
@@ -213,7 +213,9 @@ Reader Lexer_call(std::ofstream& out, std::ifstream& source) {
 				lexeme = "";
 				done = 0;
 			}
-			else source.unget();
+			else {
+				source.unget();
+			}
 		}
 
 		else if (state == "comments" && c == '*' && (source.get()) == '/') {

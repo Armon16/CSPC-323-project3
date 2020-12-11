@@ -16,7 +16,6 @@ public:
 	std::string getType() {
 		return this->type;
 		}
-
 	void setLexeme(std::string s) {
 		this->lexeme = s;
 		}

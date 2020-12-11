@@ -37,8 +37,9 @@ Reader Primary_prime(std::ofstream& out, std::ifstream& source) {
 	if (latest.getLexeme() != "(") {
 		return latest;
 	}
-	else
+	else{
 		latest = IDs(out, source, Lexer_call(out, source), false, "");
+	}
 	if (latest.getLexeme() != ")") {
 		Syntax_Error(latest, out, ")");
 	}
@@ -63,8 +64,9 @@ Reader Primary(std::ofstream& out, std::ifstream& source, Reader latest) {
 		if (latest.getLexeme() != ")") {
 			Syntax_Error(latest, out, ")");
 		}
-		else
+		else{
 			return Lexer_call(out, source);
+		}
 	}
 
 	else if (latest.getToken() == "int") {
@@ -112,14 +114,17 @@ Reader Term_Prime(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (latest.getLexeme() == "*" || latest.getLexeme() == "/") {
 		latest = Factor(out, source, Lexer_call(out, source));
 		arithmetic_Check();
-		if (save.getLexeme() == "*")
+		if (save.getLexeme() == "*"){
 			general_instr("MUL", "null");
-		else if (save.getLexeme() == "/")
+		}
+		else if (save.getLexeme() == "/"){
 			general_instr("DIV", "null");
+		}
 		return Term_Prime(out, source, latest);
 	}
-	else
+	else{
 		return latest;
+	}
 }
 Reader Term(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (file){
@@ -441,8 +446,9 @@ Reader State_List_Cont(std::ofstream& out, std::ifstream& source, Reader latest)
 	else if (latest.getLexeme() == "while") {
 		return State_List(out, source, latest);
 	}
-	else
+	else{
 		return latest;
+	}
 }
 
 Reader State_List(std::ofstream& out, std::ifstream& source, Reader latest) {
