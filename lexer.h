@@ -20,7 +20,9 @@ std::string get_address(std::string sym) {
 	std::vector<Character>::iterator i;
 	i = table.begin();
 	while (!table.empty() && i != table.end()) {
-		if (i->getSym().getLexeme() == sym) { return i->getAddress(); }
+		if (i->getSym().getLexeme() == sym) {
+			return i->getAddress();
+			}
 		i++;
 	}
 	std::cerr << "Error: undeclared Identifier used in line " << line << ".\n";
@@ -32,7 +34,9 @@ Reader retrieve_system(std::string sym) {
 	std::vector<Character>::iterator i;
 	i = table.begin();
 	while (!table.empty() && i != table.end()) {
-		if (i->getSym().getLexeme() == sym) { return i->getSym(); }
+		if (i->getSym().getLexeme() == sym) {
+			return i->getSym();
+			}
 		i++;
 	}
 	std::cerr << "Error: undeclared Identifier used in line " << line << ".\n";
@@ -43,7 +47,9 @@ Reader retrieve_system_by_address(std::string sym) {
 	std::vector<Character>::iterator i;
 	i = table.begin();
 	while (!table.empty() && i != table.end()) {
-		if (i->getAddress() == sym) { return i->getSym(); }
+		if (i->getAddress() == sym) {
+			return i->getSym();
+			}
 		i++;
 	}
 	std::cerr << "Error: undeclared Identifier used in line " << line << ".\n";
@@ -143,13 +149,22 @@ void back_patch(int jump_addr)
 
 bool FSM(std::string& state, char input, std::string& lexeme) {
 	std::string c;
-	if (state != "comments")
+	if (state != "comments"){
 		c.push_back(input);
+	}
 	if (state == "start") {
-		if (isalpha(input)) { state = "identifier"; }
-		else if (isdigit(input)) { state = "int"; }
-		else if (std::find(operator_state.begin(), operator_state.end(), c) != operator_state.end()) { state = "operator"; }
-		else if (std::find(separator_state.begin(), separator_state.end(), c) != separator_state.end()) { state = "separator"; }
+		if (isalpha(input)) {
+			state = "identifier";
+			}
+		else if (isdigit(input)) {
+			state = "int";
+			}
+		else if (std::find(operator_state.begin(), operator_state.end(), c) != operator_state.end()) {
+			state = "operator";
+			}
+		else if (std::find(separator_state.begin(), separator_state.end(), c) != separator_state.end()) {
+			state = "separator";
+			}
 		else if (input == EOF) {
 			state = "fileend";
 			return true;
@@ -170,8 +185,9 @@ bool FSM(std::string& state, char input, std::string& lexeme) {
 		lexeme = "";
 	}
 	else if (state == "operator" && std::find(operator_state.begin(), operator_state.end(), lexeme + c) == operator_state.end()) {
-		if (lexeme == "<" || lexeme == "=" || lexeme == "!" || lexeme == "<" || lexeme == ">" || lexeme == "-" || lexeme == "+" || lexeme == "*" || lexeme == "/") {}
+		if (lexeme == "<" || lexeme == "=" || lexeme == "!" || lexeme == "<" || lexeme == ">" || lexeme == "-" || lexeme == "+" || lexeme == "*" || lexeme == "/") {
 		return true;
+		}
 	}
 	else if (state == "separator" && std::find(separator_state.begin(), separator_state.end(), lexeme + c) == separator_state.end()) {
 		return true;

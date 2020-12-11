@@ -137,8 +137,12 @@ Reader Expression_Prime(std::ofstream& out, std::ifstream& source, Reader latest
 	if (latest.getLexeme() == "+" || latest.getLexeme() == "-") {
 		latest = Term(out, source, Lexer_call(out, source));
 		arithmetic_Check();
-		if (save == "+") general_instr("ADD", "null");
-		else if (save == "-") general_instr("SUB", "null");
+		if (save == "+") {
+			general_instr("ADD", "null");
+		}
+		else if (save == "-"){
+			 general_instr("SUB", "null");
+		}
 		return Expression_Prime(out, source, latest);
 	}
 	else{
@@ -147,8 +151,9 @@ Reader Expression_Prime(std::ofstream& out, std::ifstream& source, Reader latest
 }
 
 Reader Expression(std::ofstream& out, std::ifstream& source, Reader latest) {
-	if (file)
+	if (file){
 		out << "\t<Expression> ::= <Term> <Expression>'\n";
+	}
 	latest = Term(out, source, latest);
 	return Expression_Prime(out, source, latest);
 }
@@ -163,8 +168,9 @@ void Relop(std::ofstream& out, std::ifstream& source, Reader latest) {
 }
 
 Reader Condition(std::ofstream& out, std::ifstream& source) {
-	if (file)
+	if (file){
 		out << "\t<Condition> ::= <Expression> <Relop> <Expression>\n";
+	}
 	Reader latest = Expression(out, source, Lexer_call(out, source));
 	Relop(out, source, latest);
 	Reader save = Expression(out, source, Lexer_call(out, source));
@@ -208,8 +214,9 @@ Reader Condition(std::ofstream& out, std::ifstream& source) {
 }
 
 void While(std::ofstream& out, std::ifstream& source) {
-	if (file)
+	if (file){
 		out << "\t<While> ::= while ( <Condition> ) <Statement>\n";
+	}
 	std::string addr = std::to_string(instr_address);
 	general_instr("LABEL", "null");
 	Lexeme_Check(out, source, "(");
@@ -416,8 +423,9 @@ Reader State_List_Cont(std::ofstream& out, std::ifstream& source, Reader latest)
 	if (latest.getLexeme() == "{") {
 		return State_List(out, source, latest);
 	}
-	else if (latest.getToken() == "identifier")
+	else if (latest.getToken() == "identifier"){
 		return State_List(out, source, latest);
+	}
 	else if (latest.getLexeme() == "if") {
 		return State_List(out, source, latest);
 	}
@@ -533,8 +541,9 @@ void Statement(std::ofstream& out, std::ifstream& source, Reader latest) {
 	if (latest.getLexeme() == "{") {
 		Compound(out, source);
 	}
-	else if (latest.getToken() == "identifier")
+	else if (latest.getToken() == "identifier"){
 		Assign(out, source, latest);
+	}
 	else if (latest.getLexeme() == "if") {
 		If(out, source);
 	}
