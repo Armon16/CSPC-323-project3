@@ -22,12 +22,11 @@ std::string get_address(std::string sym) {
 	while (!table.empty() && i != table.end()) {
 		if (i->getSym().getLexeme() == sym) {
 			return i->getAddress();
-			}
+		}
 		i++;
 	}
 	std::cerr << "Error: undeclared Identifier used in line " << line << ".\n";
 	exit(2);
-
 }
 
 Reader retrieve_system(std::string sym) {
@@ -36,10 +35,10 @@ Reader retrieve_system(std::string sym) {
 	while (!table.empty() && i != table.end()) {
 		if (i->getSym().getLexeme() == sym) {
 			return i->getSym();
-			}
+		}
 		i++;
 	}
-	std::cerr << "Error: undeclared Identifier used in line " << line << ".\n";
+	std::cerr << "Error: undeclared Identifier" << line << ".\n";
 	exit(2);
 }
 
@@ -49,10 +48,10 @@ Reader retrieve_system_by_address(std::string sym) {
 	while (!table.empty() && i != table.end()) {
 		if (i->getAddress() == sym) {
 			return i->getSym();
-			}
+		}
 		i++;
 	}
-	std::cerr << "Error: undeclared Identifier used in line " << line << ".\n";
+	std::cerr << "Error: undeclared Identifier" << line << ".\n";
 	exit(2);
 }
 
@@ -61,7 +60,7 @@ void make_Sym(Reader sym) {
 	i = table.begin();
 	while (!table.empty() && i != table.end()) {
 		if (i->getSym().getLexeme() == sym.getLexeme()) {
-			std::cerr << "Error: Identifier illegally redeclared in line " << line << ".\n";
+			std::cerr << "Error: Bad Identifier redeclared  " << line << ".\n";
 			exit(2);
 			 }
 		i++;
@@ -102,7 +101,7 @@ std::vector<Reader> arithmetic_Table;
 
 void arithmetic_Check() {
 	if (arithmetic_Table.empty()) { 
-		std::cerr << "Error: illegal arithmetic op on line: " << line << ".\n";
+		std::cerr << "Error: illegal arithmetic: " << line << ".\n";
 		exit(2);
 		}
 
@@ -110,40 +109,40 @@ void arithmetic_Check() {
 	if (arithmetic_Table.back().getLexeme() == "identifier") {
 		arithmetic_Table.pop_back();
 		if (retrieve_system_by_address(save).getType() == "boolean" || retrieve_system_by_address(arithmetic_Table.back().getLexeme()).getType() == "boolean"){
-		std::cerr << "Error: illegal arithmetic op on line: " << line << ".\n";
+		std::cerr << "Error: illegal arithmetic: " << line << ".\n";
 		exit(2);
 		}
 
 		if (retrieve_system_by_address(save).getType() != retrieve_system_by_address(arithmetic_Table.back().getLexeme()).getType()){
-			std::cerr << "Error: illegal arithmetic op on line: " << line << ".\n";
+			std::cerr << "Error: illegal arithmetic: " << line << ".\n";
 			exit(2);
 
 		}
 	}
+
 	else if (arithmetic_Table.back().getLexeme() == "int") {
 		if (retrieve_system_by_address(save).getType() != "int"){
-			std::cerr << "Error: illegal arithmetic op on line: " << line << ".\n";
+			std::cerr << "Error: illegal arithmetic: " << line << ".\n";
 			exit(2);
 
 		}
 	}
 }
 
-std::vector<int> jumpStackPosition;
+std::vector<int> jump;
 
-void push_jumpStack(int address) {
-	jumpStackPosition.push_back(address);
+void push_stack(int address) {
+	jump.push_back(address);
 }
 
-int pop_jumpStack() {
-	int save = jumpStackPosition.back();
-	jumpStackPosition.pop_back();
+int pop_stack() {
+	int save = jump.back();
+	jump.pop_back();
 	return save;
 }
 
-void back_patch(int jump_addr)
-{
-	int addr = pop_jumpStack();
+void back_patch(int jump_addr) {
+	int addr = pop_stack();
 	token[addr].setOprnd(std::to_string(jump_addr));
 }
 
@@ -174,6 +173,7 @@ bool FSM(std::string& state, char input, std::string& lexeme) {
 	else if (state == "identifier" && !isalnum(input) && input != '_') {
 		return true;
 	}
+
 	else if (state == "int") {
 		if (!isdigit(input)) {
 			return true;
@@ -184,14 +184,17 @@ bool FSM(std::string& state, char input, std::string& lexeme) {
 		state = "comments";
 		lexeme = "";
 	}
+
 	else if (state == "operator" && std::find(operator_state.begin(), operator_state.end(), lexeme + c) == operator_state.end()) {
 		if (lexeme == "<" || lexeme == "=" || lexeme == "!" || lexeme == "<" || lexeme == ">" || lexeme == "-" || lexeme == "+" || lexeme == "*" || lexeme == "/") {
 			return true;
 		}
 	}
+
 	else if (state == "separator" && std::find(separator_state.begin(), separator_state.end(), lexeme + c) == separator_state.end()) {
 		return true;
 	}
+
 	return false;
 }
 
@@ -213,6 +216,7 @@ Reader Lexer_call(std::ofstream& out, std::ifstream& source) {
 				lexeme = "";
 				done = 0;
 			}
+
 			else {
 				source.unget();
 			}
@@ -242,6 +246,7 @@ Reader Lexer_call(std::ofstream& out, std::ifstream& source) {
 		else if (!isspace(c) && state != "comments" && done != 1) {
 			lexeme.push_back(c);
 			}
+			
 		else if (c == '\n') {
 			line += 1;
 			}
