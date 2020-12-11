@@ -6,7 +6,6 @@ Identifier	MemoryLocation			Type
 	sum						5002					identifier
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Assembly Code:
-
 1	PUSHI	0
 2	POPM	5002
 3	PUSHI	1

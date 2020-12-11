@@ -7,13 +7,25 @@ class Reader {
 private:
 	std::string token, lexeme, type;
 public:
-	std::string getToken() { return this->token; }
-	std::string getLexeme() { return this->lexeme; }
-	std::string getType() { return this->type; }
+	std::string getToken() {
+		return this->token; 
+		}
+	std::string getLexeme() {
+		return this->lexeme;
+		}
+	std::string getType() {
+		return this->type;
+		}
 
-	void setLexeme(std::string s) { this->lexeme = s; }
-	void setType(std::string s) { this->type = s; }
-	void setToken(std::string s) { this->token = s; }
+	void setLexeme(std::string s) {
+		this->lexeme = s;
+		}
+	void setType(std::string s) {
+		this->type = s;
+		}
+	void setToken(std::string s) {
+		this->token = s;
+		}
 };
 
 class Character {
@@ -21,11 +33,18 @@ private:
 	Reader sym;
 	std::string address;
 public:
-	Reader getSym() { return this->sym; }
-	std::string getAddress() { return this->address; }
+	Reader getSym() {
+		return this->sym;
+		}
+	std::string getAddress() {return this->address;
+	}
 
-	void setSym(Reader s) { this->sym = s; }
-	void setAddress(int s) { this->address = std::to_string(s); }
+	void setSym(Reader s) { 
+		this->sym = s;
+		}
+	void setAddress(int s) { 
+		this->address = std::to_string(s);
+		}
 
 	Character(Reader sym, int address) {
 		setSym(sym);

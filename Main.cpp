@@ -13,29 +13,24 @@
 #include "lexer.h"
 #include "Machine.h"
 
-int main(int argc, const char* argv[]) {
-	char c;
-	if (argv[1] == nullptr) {
+int main(int argument, const char* argument_2[]) {
+	if (argument_2[1] == nullptr) {
 		std::cerr << "No Input File Detected\n";
-		std::cin >> c;
 		return 2;
 	}
-	if (argv[2] == nullptr) {
+	if (argument_2[2] == nullptr) {
 		std::cerr << "No Output File Detected\n";
-		std::cin >> c;
 		return 2;
 	}
-	std::ifstream source(argv[1]);
-	std::ofstream out(argv[2]);
+	std::ifstream source(argument_2[1]);
+	std::ofstream out(argument_2[2]);
 	if (!out.is_open()) {
 		std::cout << "Output file failed to open\n";
-		std::cin >> c;
 		return 2;
 	}
 
 	if (!source.is_open()) {
 		std::cout << "Input file failed to open\n";
-		std::cin >> c;
 		return 2;
 	}
 
@@ -48,3 +43,4 @@ int main(int argc, const char* argv[]) {
 	source.close();
 	return 0;
 }
+
